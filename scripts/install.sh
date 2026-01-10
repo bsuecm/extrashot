@@ -105,11 +105,17 @@ if [ ! -f "$INSTALL_DIR/configs/extra_ips.txt" ]; then
     touch "$INSTALL_DIR/configs/extra_ips.txt"
 fi
 
-# Install Python dependencies
+# Create and activate virtual environment
+log_info "Setting up Python virtual environment..."
+python3 -m venv "$INSTALL_DIR/venv"
+source "$INSTALL_DIR/venv/bin/activate"
+
+# Install Python dependencies in venv
 log_info "Installing Python dependencies..."
-python3 -m pip install --quiet --upgrade pip
-python3 -m pip install --quiet -r "$INSTALL_DIR/backend/requirements.txt"
-python3 -m pip install --quiet gunicorn
+pip install --quiet --upgrade pip
+pip install --quiet -r "$INSTALL_DIR/backend/requirements.txt"
+
+deactivate
 
 # Build frontend if npm is available
 if command -v npm &>/dev/null; then

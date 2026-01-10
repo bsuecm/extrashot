@@ -26,8 +26,8 @@ Environment=FRONTEND_DIR=/opt/ndi-controller/frontend/dist
 Environment=CONFIG_DIR=/opt/ndi-controller/configs/generated
 Environment=NDI_EXTRA_IPS_FILE=/opt/ndi-controller/configs/extra_ips.txt
 
-# Use gunicorn for production (single worker to maintain state)
-ExecStart=/usr/bin/python3 -m gunicorn -w 1 -b 0.0.0.0:5000 --timeout 120 --access-logfile - --error-logfile - app:app
+# Use gunicorn from virtual environment (single worker to maintain state)
+ExecStart=/opt/ndi-controller/venv/bin/gunicorn -w 1 -b 0.0.0.0:5000 --timeout 120 --access-logfile - --error-logfile - app:app
 
 # Graceful shutdown
 ExecStop=/bin/kill -TERM $MAINPID
