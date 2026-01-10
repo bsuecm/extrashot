@@ -3,7 +3,7 @@ import { ndiApi } from '../api/ndiApi';
 import VideoPreview from './VideoPreview';
 
 function OutputManager({ status, onStatusChange, onError }) {
-  const [devices, setDevices] = useState({ v4l2: [], libcamera: [] });
+  const [devices, setDevices] = useState([]);
   const [config, setConfig] = useState({
     name: 'Pi Camera',
     device: '',
@@ -18,12 +18,21 @@ function OutputManager({ status, onStatusChange, onError }) {
   const fetchDevices = useCallback(async () => {
     try {
       const data = await ndiApi.getDevices();
-      setDevices(data);
+      // Filter to only show actual cameras (exclude codec/isp devices)
+      const cameraDevices = (data.devices || []).filter(d =>
+        d.name.includes('Webcam') ||
+        d.name.includes('Camera') ||
+        d.name.includes('USB') ||
+        d.type === 'libcamera'
+      );
+      setDevices(cameraDevices);
       // Auto-select first available device
-      if (data.v4l2?.length > 0 && !config.device) {
-        setConfig(prev => ({ ...prev, device: data.v4l2[0], type: 'v4l2' }));
-      } else if (data.libcamera?.length > 0 && !config.device) {
-        setConfig(prev => ({ ...prev, device: data.libcamera[0], type: 'libcamera' }));
+      if (cameraDevices.length > 0 && !config.device) {
+        setConfig(prev => ({
+          ...prev,
+          device: cameraDevices[0].path,
+          type: cameraDevices[0].type
+        }));
       }
     } catch (err) {
       console.error('Failed to fetch devices:', err);
@@ -66,11 +75,6 @@ function OutputManager({ status, onStatusChange, onError }) {
     }
   };
 
-  const allDevices = [
-    ...(devices.v4l2 || []).map(d => ({ path: d, type: 'v4l2' })),
-    ...(devices.libcamera || []).map(d => ({ path: d, type: 'libcamera' }))
-  ];
-
   return (
     <div className="card">
       <h2>NDI Output</h2>
@@ -112,9 +116,9 @@ function OutputManager({ status, onStatusChange, onError }) {
               }}
             >
               <option value="">Select a camera...</option>
-              {allDevices.map((d, i) => (
+              {devices.map((d, i) => (
                 <option key={i} value={`${d.type}:${d.path}`}>
-                  [{d.type}] {d.path}
+                  {d.name}
                 </option>
               ))}
             </select>
