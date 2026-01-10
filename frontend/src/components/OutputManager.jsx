@@ -19,12 +19,17 @@ function OutputManager({ status, onStatusChange, onError }) {
     try {
       const data = await ndiApi.getDevices();
       // Filter to only show actual cameras (exclude codec/isp devices)
-      const cameraDevices = (data.devices || []).filter(d =>
-        d.name.includes('Webcam') ||
-        d.name.includes('Camera') ||
-        d.name.includes('USB') ||
-        d.type === 'libcamera'
-      );
+      // Also filter out secondary video nodes (odd numbers like video1, video3)
+      const cameraDevices = (data.devices || []).filter(d => {
+        const isCamera = d.name.includes('Webcam') ||
+          d.name.includes('Camera') ||
+          d.name.includes('USB') ||
+          d.type === 'libcamera';
+        // For V4L2, only show primary capture devices (even numbered: video0, video2, etc.)
+        const videoNum = d.path.match(/video(\d+)$/);
+        const isPrimary = !videoNum || parseInt(videoNum[1]) % 2 === 0;
+        return isCamera && isPrimary;
+      });
       setDevices(cameraDevices);
       // Auto-select first available device
       if (cameraDevices.length > 0 && !config.device) {
