@@ -1,0 +1,35 @@
+<?xml version="1.0" ?>
+<app name="ndi_output_v4l2" xmlns="urn:library:yuri:xmlschema:2001">
+    <general>
+        <parameter name="run_limit">-1</parameter>
+        <parameter name="debug">0</parameter>
+    </general>
+
+    <!-- V4L2 webcam source - using MJPG for HD resolutions -->
+    <node class="v4l2source" name="camera">
+        <parameter name="path">{{ device_path }}</parameter>
+        <parameter name="resolution">{{ resolution }}</parameter>
+        <parameter name="fps">{{ fps }}</parameter>
+        <parameter name="format">MJPG</parameter>
+    </node>
+
+    <!-- JPEG decoder -->
+    <node class="jpeg_decoder" name="decoder"/>
+
+    <!-- Convert RGB to UYVY for NDI compatibility -->
+    <node class="convert" name="converter">
+        <parameter name="format">UYVY</parameter>
+    </node>
+
+    <!-- NDI Output -->
+    <node class="ndi_output" name="ndi_out">
+        <parameter name="stream">{{ output_name }}</parameter>
+        <parameter name="fps">{{ fps }}</parameter>
+        <parameter name="ptz">{{ ptz_enabled }}</parameter>
+    </node>
+
+    <!-- Video pipeline: camera -> decoder -> converter -> NDI output -->
+    <link name="to_decoder" class="single" source="camera:0" target="decoder:0"/>
+    <link name="to_converter" class="single" source="decoder:0" target="converter:0"/>
+    <link name="to_ndi" class="single" source="converter:0" target="ndi_out:0"/>
+</app>

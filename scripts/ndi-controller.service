@@ -1,0 +1,21 @@
+[Unit]
+Description=NDI Controller Web Interface
+After=network.target
+
+[Service]
+Type=simple
+User=ndi
+Group=ndi
+WorkingDirectory=/opt/ndi-controller
+Environment=PATH=/usr/local/bin:/usr/bin:/bin
+Environment=PYTHONUNBUFFERED=1
+Environment=NDI_RUNTIME_DIR_V6=/usr/share/ndi
+ExecStart=/usr/bin/python3 -m gunicorn -w 1 -b 0.0.0.0:5000 --access-logfile - --error-logfile - app:app
+Restart=always
+RestartSec=5
+
+# Allow access to video devices and display
+SupplementaryGroups=video audio render
+
+[Install]
+WantedBy=multi-user.target

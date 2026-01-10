@@ -1,0 +1,26 @@
+<?xml version="1.0" ?>
+<app name="ndi_viewer" xmlns="urn:library:yuri:xmlschema:2001">
+    <general>
+        <parameter name="run_limit">-1</parameter>
+        <parameter name="debug">0</parameter>
+    </general>
+
+    <!-- NDI Input - receives video from network source -->
+    <node class="ndi_input" name="ndi_in">
+        <parameter name="stream">{{ ndi_source }}</parameter>
+        {% if backup_source %}
+        <parameter name="backup">{{ backup_source }}</parameter>
+        {% endif %}
+        <parameter name="audio">{{ audio_enabled }}</parameter>
+        <parameter name="format">fastest</parameter>
+    </node>
+
+    <!-- SDL2 Window for display -->
+    <node class="sdl2_window" name="display">
+        <parameter name="fullscreen">{{ fullscreen }}</parameter>
+        <parameter name="resolution">{{ resolution }}</parameter>
+    </node>
+
+    <!-- Video link: NDI input to display -->
+    <link name="to_display" class="single" source="ndi_in:0" target="display:0"/>
+</app>

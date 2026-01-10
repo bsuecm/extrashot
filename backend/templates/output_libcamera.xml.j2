@@ -1,0 +1,25 @@
+<?xml version="1.0" ?>
+<app name="ndi_output_picam" xmlns="urn:library:yuri:xmlschema:2001">
+    <general>
+        <parameter name="run_limit">-1</parameter>
+        <parameter name="debug">0</parameter>
+    </general>
+
+    <!-- Pi Camera via libcamera/V4L2 -->
+    <!-- Note: Pi Camera should be accessible via /dev/video0 when using libcamera -->
+    <node class="v4l2source" name="camera">
+        <parameter name="path">/dev/video0</parameter>
+        <parameter name="resolution">{{ resolution }}</parameter>
+        <parameter name="fps">{{ fps }}</parameter>
+    </node>
+
+    <!-- NDI Output -->
+    <node class="ndi_output" name="ndi_out">
+        <parameter name="stream">{{ output_name }}</parameter>
+        <parameter name="fps">{{ fps }}</parameter>
+        <parameter name="ptz">{{ ptz_enabled }}</parameter>
+    </node>
+
+    <!-- Video link: camera to NDI output -->
+    <link name="to_ndi" class="single" source="camera:0" target="ndi_out:0"/>
+</app>
