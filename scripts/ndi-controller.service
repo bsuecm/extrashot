@@ -1,21 +1,44 @@
 [Unit]
 Description=NDI Controller Web Interface
 After=network.target
+Wants=network-online.target
 
 [Service]
 Type=simple
 User=ndi
 Group=ndi
-WorkingDirectory=/opt/ndi-controller
+WorkingDirectory=/opt/ndi-controller/backend
+
+# Core environment
 Environment=PATH=/usr/local/bin:/usr/bin:/bin
 Environment=PYTHONUNBUFFERED=1
+
+# Library paths for yuri and NDI
+Environment=LD_LIBRARY_PATH=/usr/local/lib
+Environment=NDI_PATH=/usr/local/lib/libndi.so.6
 Environment=NDI_RUNTIME_DIR_V6=/usr/share/ndi
-ExecStart=/usr/bin/python3 -m gunicorn -w 1 -b 0.0.0.0:5000 --access-logfile - --error-logfile - app:app
+
+# Application paths
+Environment=YURI_BIN=/usr/local/bin/yuri2
+Environment=YURI_LIB_PATH=/usr/local/lib
+Environment=NDI_LIB_PATH=/usr/local/lib/libndi.so.6
+Environment=FRONTEND_DIR=/opt/ndi-controller/frontend/dist
+Environment=CONFIG_DIR=/opt/ndi-controller/configs/generated
+Environment=NDI_EXTRA_IPS_FILE=/opt/ndi-controller/configs/extra_ips.txt
+
+# Use gunicorn for production (single worker to maintain state)
+ExecStart=/usr/bin/python3 -m gunicorn -w 1 -b 0.0.0.0:5000 --timeout 120 --access-logfile - --error-logfile - app:app
+
+# Graceful shutdown
+ExecStop=/bin/kill -TERM $MAINPID
+TimeoutStopSec=10
+
 Restart=always
 RestartSec=5
 
-# Allow access to video devices and display
+# Allow access to video devices, display, and ramdisk for preview
 SupplementaryGroups=video audio render
+ReadWritePaths=/dev/shm/extrashot_preview
 
 [Install]
 WantedBy=multi-user.target

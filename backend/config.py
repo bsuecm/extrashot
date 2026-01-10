@@ -7,7 +7,7 @@ class Config:
     # Yuri paths
     YURI_BIN = os.environ.get('YURI_BIN', '/usr/local/bin/yuri2')
     YURI_LIB_PATH = os.environ.get('YURI_LIB_PATH', '/usr/local/lib')
-    NDI_LIB_PATH = os.environ.get('NDI_LIB_PATH', '/usr/local/lib/libndi.so.5')
+    NDI_LIB_PATH = os.environ.get('NDI_LIB_PATH', '/usr/local/lib/libndi.so.6')
 
     # Directories
     BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
