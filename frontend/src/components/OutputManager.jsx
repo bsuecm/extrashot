@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { ndiApi } from '../api/ndiApi';
+import VideoPreview from './VideoPreview';
 
 function OutputManager({ status, onStatusChange, onError }) {
   const [devices, setDevices] = useState({ v4l2: [], libcamera: [] });
@@ -73,6 +74,9 @@ function OutputManager({ status, onStatusChange, onError }) {
   return (
     <div className="card">
       <h2>NDI Output</h2>
+
+      <div className="preview-label">Live Preview</div>
+      <VideoPreview enabled={status.running} />
 
       {status.running ? (
         <div>

@@ -14,7 +14,7 @@ from services.yuri_manager import YuriManager
 from services.config_generator import ConfigGenerator
 from services.ndi_discovery import NDIDiscoveryService
 from services.ptz_controller import PTZController
-from routes import sources, viewer, ptz, output
+from routes import sources, viewer, ptz, output, preview
 
 # Configure logging
 logging.basicConfig(
@@ -65,6 +65,7 @@ def create_app(config_class=Config):
     app.register_blueprint(viewer.bp, url_prefix='/api/viewer')
     app.register_blueprint(ptz.bp, url_prefix='/api/ptz')
     app.register_blueprint(output.bp, url_prefix='/api/output')
+    app.register_blueprint(preview.bp, url_prefix='/api/preview')
 
     # Health check endpoint
     @app.route('/api/health')

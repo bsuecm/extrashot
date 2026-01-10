@@ -5,11 +5,15 @@ import subprocess
 import os
 import signal
 import time
+import glob
+import shutil
 from typing import Optional, Dict
 from threading import Lock
 import logging
 
 logger = logging.getLogger(__name__)
+
+PREVIEW_DIR = '/dev/shm/extrashot_preview'
 
 
 class YuriProcess:
@@ -63,12 +67,36 @@ class YuriManager:
 
         return env
 
+    def _setup_preview_dir(self):
+        """Create and clean the preview directory"""
+        try:
+            # Clean up any existing files
+            if os.path.exists(PREVIEW_DIR):
+                shutil.rmtree(PREVIEW_DIR)
+            os.makedirs(PREVIEW_DIR, exist_ok=True)
+            logger.info(f"Created preview directory: {PREVIEW_DIR}")
+        except Exception as e:
+            logger.warning(f"Failed to setup preview directory: {e}")
+
+    def _cleanup_preview_dir(self):
+        """Clean up preview directory"""
+        try:
+            if os.path.exists(PREVIEW_DIR):
+                shutil.rmtree(PREVIEW_DIR)
+                logger.info(f"Cleaned up preview directory: {PREVIEW_DIR}")
+        except Exception as e:
+            logger.warning(f"Failed to cleanup preview directory: {e}")
+
     def start_process(self, name: str, config_path: str) -> Dict:
         """Start a yuri process with given config"""
         with self.lock:
             # Stop existing process with same name
             if name in self.processes:
                 self._stop_process_internal(name)
+
+            # Setup preview directory for output processes
+            if 'output' in name.lower():
+                self._setup_preview_dir()
 
             try:
                 logger.info(f"Starting yuri process '{name}' with config: {config_path}")
@@ -114,6 +142,10 @@ class YuriManager:
             proc.process.wait(timeout=2)
         except Exception as e:
             logger.error(f"Error stopping process '{name}': {e}")
+
+        # Cleanup preview directory for output processes
+        if 'output' in name.lower():
+            self._cleanup_preview_dir()
 
         del self.processes[name]
         return True

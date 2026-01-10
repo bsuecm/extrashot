@@ -16,6 +16,11 @@
     <!-- JPEG decoder -->
     <node class="jpeg_decoder" name="decoder"/>
 
+    <!-- Split stream for NDI output and preview -->
+    <node class="split_frames" name="splitter">
+        <parameter name="outputs">2</parameter>
+    </node>
+
     <!-- Convert RGB to UYVY for NDI compatibility -->
     <node class="convert" name="converter">
         <parameter name="format">UYVY</parameter>
@@ -28,8 +33,31 @@
         <parameter name="ptz">{{ ptz_enabled }}</parameter>
     </node>
 
-    <!-- Video pipeline: camera -> decoder -> converter -> NDI output -->
+    <!-- Preview branch: scale down and encode to JPEG -->
+    <node class="scale" name="preview_scale">
+        <parameter name="resolution">640x360</parameter>
+    </node>
+
+    <node class="jpeg_encoder" name="preview_encoder">
+        <parameter name="quality">75</parameter>
+    </node>
+
+    <!-- Write preview frames to ramdisk for Flask to serve -->
+    <node class="filedump" name="preview_dump">
+        <parameter name="filename">/dev/shm/extrashot_preview/frame_%06s.jpg</parameter>
+        <parameter name="sequence">6</parameter>
+    </node>
+
+    <!-- Main pipeline: camera -> decoder -> splitter -->
     <link name="to_decoder" class="single" source="camera:0" target="decoder:0"/>
-    <link name="to_converter" class="single" source="decoder:0" target="converter:0"/>
+    <link name="to_splitter" class="single" source="decoder:0" target="splitter:0"/>
+
+    <!-- NDI branch: splitter -> converter -> ndi_out -->
+    <link name="to_converter" class="single" source="splitter:0" target="converter:0"/>
     <link name="to_ndi" class="single" source="converter:0" target="ndi_out:0"/>
+
+    <!-- Preview branch: splitter -> scale -> jpeg -> filedump -->
+    <link name="to_preview_scale" class="single" source="splitter:1" target="preview_scale:0"/>
+    <link name="to_preview_encode" class="single" source="preview_scale:0" target="preview_encoder:0"/>
+    <link name="to_preview_dump" class="single" source="preview_encoder:0" target="preview_dump:0"/>
 </app>
