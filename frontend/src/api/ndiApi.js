@@ -13,6 +13,39 @@ async function handleResponse(response) {
 }
 
 export const ndiApi = {
+  // Auth
+  async login(username, password) {
+    const res = await fetch(`${API_BASE}/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password })
+    });
+    return handleResponse(res);
+  },
+
+  async logout() {
+    const res = await fetch(`${API_BASE}/auth/logout`, { method: 'POST' });
+    return handleResponse(res);
+  },
+
+  async getAuthStatus() {
+    const res = await fetch(`${API_BASE}/auth/status`);
+    return handleResponse(res);
+  },
+
+  async changeCredentials(currentPassword, newUsername, newPassword) {
+    const res = await fetch(`${API_BASE}/auth/credentials`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        current_password: currentPassword,
+        username: newUsername || undefined,
+        password: newPassword || undefined
+      })
+    });
+    return handleResponse(res);
+  },
+
   // Sources
   async getSources() {
     const res = await fetch(`${API_BASE}/sources/`);

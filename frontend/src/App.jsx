@@ -1,12 +1,16 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { ndiApi } from './api/ndiApi';
+import Login from './components/Login';
 import SourceSelector from './components/SourceSelector';
 import PTZControls from './components/PTZControls';
 import OutputManager from './components/OutputManager';
 import IPManager from './components/IPManager';
+import CredentialsManager from './components/CredentialsManager';
 import StatusBar from './components/StatusBar';
 
 function App() {
+  const [authenticated, setAuthenticated] = useState(null); // null = loading
+  const [username, setUsername] = useState(null);
   const [view, setView] = useState('viewer');
   const [sources, setSources] = useState([]);
   const [selectedSource, setSelectedSource] = useState(null);
@@ -14,6 +18,35 @@ function App() {
   const [outputStatus, setOutputStatus] = useState({ running: false });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  // Check auth status on mount
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const status = await ndiApi.getAuthStatus();
+        setAuthenticated(status.authenticated);
+        setUsername(status.username);
+      } catch (err) {
+        setAuthenticated(false);
+      }
+    };
+    checkAuth();
+  }, []);
+
+  const handleLogin = (user) => {
+    setAuthenticated(true);
+    setUsername(user);
+  };
+
+  const handleLogout = async () => {
+    try {
+      await ndiApi.logout();
+    } catch (err) {
+      console.error('Logout error:', err);
+    }
+    setAuthenticated(false);
+    setUsername(null);
+  };
 
   const fetchSources = useCallback(async () => {
     try {
@@ -41,6 +74,8 @@ function App() {
   }, []);
 
   useEffect(() => {
+    if (!authenticated) return;
+
     fetchSources();
     fetchStatus();
     const interval = setInterval(() => {
@@ -48,7 +83,7 @@ function App() {
       fetchStatus();
     }, 5000);
     return () => clearInterval(interval);
-  }, [fetchSources, fetchStatus]);
+  }, [authenticated, fetchSources, fetchStatus]);
 
   const handleRefreshSources = async () => {
     setLoading(true);
@@ -89,10 +124,27 @@ function App() {
     }
   };
 
+  // Show loading spinner while checking auth
+  if (authenticated === null) {
+    return (
+      <div className="login-container">
+        <div className="loading">Loading...</div>
+      </div>
+    );
+  }
+
+  // Show login page if not authenticated
+  if (!authenticated) {
+    return <Login onLogin={handleLogin} />;
+  }
+
   return (
     <div className="app">
       <header>
-        <h1>Extrashot</h1>
+        <div className="logo-title">
+          <img src="/logo.png" alt="Extrashot" className="logo" />
+          <h1>Extrashot</h1>
+        </div>
         <nav>
           <button
             className={view === 'viewer' ? 'active' : ''}
@@ -113,6 +165,10 @@ function App() {
             Settings
           </button>
         </nav>
+        <div className="user-menu">
+          <span className="user-info">{username}</span>
+          <button className="logout-btn" onClick={handleLogout}>Logout</button>
+        </div>
       </header>
 
       <main>
@@ -156,7 +212,10 @@ function App() {
         )}
 
         {view === 'settings' && (
-          <IPManager onError={setError} />
+          <div className="settings-panel">
+            <IPManager onError={setError} />
+            <CredentialsManager onError={setError} />
+          </div>
         )}
       </main>
 

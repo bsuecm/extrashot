@@ -14,7 +14,8 @@ from services.yuri_manager import YuriManager
 from services.config_generator import ConfigGenerator
 from services.ndi_discovery import NDIDiscoveryService
 from services.ptz_controller import PTZController
-from routes import sources, viewer, ptz, output, preview
+from services.auth_service import AuthService
+from routes import sources, viewer, ptz, output, preview, auth
 
 # Configure logging
 logging.basicConfig(
@@ -60,7 +61,15 @@ def create_app(config_class=Config):
         control_url=f'http://localhost:{config_class.YURI_WEBSERVER_PORT}/control'
     )
 
+    app.config['auth_service'] = AuthService(
+        credentials_file=config_class.CREDENTIALS_FILE
+    )
+
+    # Set secret key for session management
+    app.secret_key = config_class.SECRET_KEY
+
     # Register blueprints
+    app.register_blueprint(auth.bp, url_prefix='/api/auth')
     app.register_blueprint(sources.bp, url_prefix='/api/sources')
     app.register_blueprint(viewer.bp, url_prefix='/api/viewer')
     app.register_blueprint(ptz.bp, url_prefix='/api/ptz')

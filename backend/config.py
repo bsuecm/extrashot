@@ -18,6 +18,10 @@ class Config:
     # NDI settings
     NDI_EXTRA_IPS_FILE = os.environ.get('NDI_EXTRA_IPS_FILE', os.path.join(BASE_DIR, 'configs', 'extra_ips.txt'))
 
+    # Authentication
+    CREDENTIALS_FILE = os.environ.get('CREDENTIALS_FILE', os.path.join(BASE_DIR, 'configs', 'credentials.json'))
+    SECRET_KEY = os.environ.get('SECRET_KEY', 'extrashot-secret-key-change-in-production')
+
     # Server settings
     FLASK_HOST = os.environ.get('FLASK_HOST', '0.0.0.0')
     FLASK_PORT = int(os.environ.get('FLASK_PORT', 5000))
