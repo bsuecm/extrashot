@@ -26,5 +26,5 @@ class Config:
     # Default NDI output settings
     DEFAULT_NDI_OUTPUT_NAME = os.environ.get('DEFAULT_NDI_OUTPUT_NAME', 'RaspberryPi-NDI')
     DEFAULT_VIDEO_DEVICE = os.environ.get('DEFAULT_VIDEO_DEVICE', '/dev/video0')
-    DEFAULT_RESOLUTION = os.environ.get('DEFAULT_RESOLUTION', '1920x1080')
+    DEFAULT_RESOLUTION = os.environ.get('DEFAULT_RESOLUTION', '1280x720')
     DEFAULT_FPS = int(os.environ.get('DEFAULT_FPS', 30))

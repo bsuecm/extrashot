@@ -8,8 +8,8 @@ function OutputManager({ status, onStatusChange, onError }) {
     name: 'Pi Camera',
     device: '',
     type: 'v4l2',
-    width: 1920,
-    height: 1080,
+    width: 1280,
+    height: 720,
     fps: 30,
     groups: ''
   });
