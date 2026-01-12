@@ -66,9 +66,10 @@ The installer will:
 - Build and install the frontend
 - Configure systemd service for auto-start
 - Set up display access for the NDI viewer
+- Build and install the native NDI discovery tool
 - Create necessary directories and permissions
 
-3. Start the service:
+After installation, start the service:
 
 ```bash
 sudo systemctl start ndi-controller
@@ -213,4 +214,4 @@ MIT
 ## Acknowledgments
 
 - [NDI SDK](https://ndi.tv/) by Vizrt
-- [Yuri2](https://github.com/iimcz/libyuri) media processing framework
+- [Yuri2/libyuri](https://github.com/bsuecm/libyuri) media processing framework (NDI6/Trixie fork)
