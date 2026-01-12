@@ -183,6 +183,7 @@ if [ "$YURI_INSTALLED" = false ] || [ "$1" = "--force-yuri" ]; then
     log_info "Removing incompatible modules..."
     rm -rf "$YURI_TMP/libyuri/src/modules/rawavfile"
     rm -rf "$YURI_TMP/libyuri/src/modules/avdemux"
+    rm -rf "$YURI_TMP/libyuri/src/modules/avoutput"
     rm -rf "$YURI_TMP/libyuri/src/modules/ultragrid"
 
     # Also remove references from CMakeLists.txt
@@ -190,6 +191,7 @@ if [ "$YURI_INSTALLED" = false ] || [ "$1" = "--force-yuri" ]; then
     if [ -f "$MODULES_CMAKE" ]; then
         sed -i '/add_subdirectory.*rawavfile/d' "$MODULES_CMAKE"
         sed -i '/add_subdirectory.*avdemux/d' "$MODULES_CMAKE"
+        sed -i '/add_subdirectory.*avoutput/d' "$MODULES_CMAKE"
         sed -i '/add_subdirectory.*ultragrid/d' "$MODULES_CMAKE"
     fi
 
