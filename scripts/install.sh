@@ -1,8 +1,27 @@
 #!/bin/bash
 # NDI Controller Installation Script for Raspberry Pi
 # This script installs the NDI Controller (Extrashot) as a systemd service
+#
+# Usage:
+#   sudo ./install.sh          - Install Extrashot only (prerequisites must be installed)
+#   sudo ./install.sh --full   - Install prerequisites first, then Extrashot
 
 set -e
+
+# Check for --full flag to install prerequisites first
+if [ "$1" = "--full" ]; then
+    SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    if [ -f "$SCRIPT_DIR/setup-prerequisites.sh" ]; then
+        echo "Running prerequisites setup first..."
+        "$SCRIPT_DIR/setup-prerequisites.sh"
+        echo ""
+        echo "Prerequisites installed. Continuing with Extrashot installation..."
+        echo ""
+    else
+        echo "Error: setup-prerequisites.sh not found in $SCRIPT_DIR"
+        exit 1
+    fi
+fi
 
 INSTALL_DIR="/opt/ndi-controller"
 SERVICE_USER="ndi"

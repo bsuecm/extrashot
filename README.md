@@ -10,53 +10,51 @@ NDI Controller for Raspberry Pi - A web-based interface for NDI source discovery
 - **PTZ Control** - Control PTZ-enabled NDI cameras
 - **Web Interface** - Modern responsive UI accessible from any browser on the network
 
-## Prerequisites
+## Quick Start (Fresh Install)
 
-Before installing Extrashot, you need to have the following installed on your Raspberry Pi:
-
-### 1. NDI SDK
-
-Download and install the NDI SDK for Linux ARM:
-
-```bash
-# Download NDI SDK (requires registration at ndi.tv)
-# Extract and install the library
-sudo cp -r NDI\ SDK\ for\ Linux/lib/aarch64-rpi4-linux-gnueabi/* /usr/local/lib/
-sudo ldconfig
-```
-
-### 2. Yuri2
-
-Yuri2 is required for NDI viewing functionality. Install the Debian package:
-
-```bash
-sudo dpkg -i yuri2-2.8.0--Debian-13-Linux.deb
-sudo apt-get install -f  # Install any missing dependencies
-```
-
-### 3. Node.js (for building frontend)
-
-```bash
-curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
-sudo apt-get install -y nodejs
-```
-
-### 4. Python 3 with venv
-
-```bash
-sudo apt-get install python3 python3-venv python3-pip
-```
-
-## Installation
-
-1. Clone the repository:
+For a fresh Raspberry Pi installation, run:
 
 ```bash
 git clone https://github.com/bsuecm/extrashot.git
 cd extrashot
+sudo ./scripts/install.sh --full
 ```
 
-2. Run the installer:
+The `--full` flag automatically installs all prerequisites (NDI SDK, yuri2, Node.js, etc.) before installing Extrashot.
+
+## Manual Installation
+
+If you prefer to install prerequisites separately or already have them installed:
+
+### Prerequisites
+
+The following must be installed before running the Extrashot installer:
+
+- **NDI SDK v6** - NDI library for source discovery and streaming
+- **yuri2** - Media framework for NDI viewing (built from [libyuri](https://github.com/bsuecm/libyuri))
+- **Node.js 20+** - For building the frontend
+- **Python 3 with venv** - For the backend API
+
+#### Installing Prerequisites Manually
+
+```bash
+# Clone the repo first
+git clone https://github.com/bsuecm/extrashot.git
+cd extrashot
+
+# Run the prerequisites installer
+sudo ./scripts/setup-prerequisites.sh
+```
+
+This script will:
+- Install system dependencies (build tools, SDL2, ffmpeg libraries)
+- Download and install NDI SDK v6
+- Clone and build yuri2 from source
+- Install Node.js if not present
+
+### Installing Extrashot
+
+Once prerequisites are installed:
 
 ```bash
 sudo ./scripts/install.sh
