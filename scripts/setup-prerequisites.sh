@@ -185,6 +185,14 @@ if [ "$YURI_INSTALLED" = false ] || [ "$1" = "--force-yuri" ]; then
     rm -rf "$YURI_TMP/libyuri/src/modules/avdemux"
     rm -rf "$YURI_TMP/libyuri/src/modules/ultragrid"
 
+    # Also remove references from CMakeLists.txt
+    MODULES_CMAKE="$YURI_TMP/libyuri/src/modules/CMakeLists.txt"
+    if [ -f "$MODULES_CMAKE" ]; then
+        sed -i '/add_subdirectory.*rawavfile/d' "$MODULES_CMAKE"
+        sed -i '/add_subdirectory.*avdemux/d' "$MODULES_CMAKE"
+        sed -i '/add_subdirectory.*ultragrid/d' "$MODULES_CMAKE"
+    fi
+
     log_info "Configuring build..."
     mkdir -p "$YURI_TMP/libyuri/build"
     cd "$YURI_TMP/libyuri/build"
