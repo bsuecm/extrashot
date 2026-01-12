@@ -160,6 +160,20 @@ else
     fi
 fi
 
+# Build and install ndi_discover tool
+if [ -f "$PROJECT_DIR/tools/ndi_discover.c" ] && [ -f "/usr/local/include/Processing.NDI.Lib.h" ]; then
+    log_info "Building NDI discovery tool..."
+    cd "$PROJECT_DIR/tools"
+    make clean 2>/dev/null || true
+    make
+    make install
+    log_info "NDI discovery tool installed at /usr/local/bin/ndi_discover"
+else
+    if [ ! -f "/usr/local/include/Processing.NDI.Lib.h" ]; then
+        log_warn "NDI SDK headers not found, skipping ndi_discover build"
+    fi
+fi
+
 # Set permissions
 log_info "Setting permissions..."
 chown -R "$SERVICE_USER:$SERVICE_USER" "$INSTALL_DIR"

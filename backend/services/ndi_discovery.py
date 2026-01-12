@@ -11,14 +11,16 @@ logger = logging.getLogger(__name__)
 
 
 class NDIDiscoveryService:
-    """Discovers NDI sources using yuri2 enumerate feature"""
+    """Discovers NDI sources using ndi_discover tool or yuri2"""
 
     def __init__(self, yuri_bin: str, extra_ips_file: str,
-                 lib_path: str = '/usr/local/lib', ndi_lib_path: str = '/usr/local/lib/libndi.so.6'):
+                 lib_path: str = '/usr/local/lib', ndi_lib_path: str = '/usr/local/lib/libndi.so.6',
+                 ndi_discover_bin: str = '/usr/local/bin/ndi_discover'):
         self.yuri_bin = yuri_bin
         self.extra_ips_file = extra_ips_file
         self.lib_path = lib_path
         self.ndi_lib_path = ndi_lib_path
+        self.ndi_discover_bin = ndi_discover_bin
 
     def get_extra_ips(self) -> List[str]:
         """Read extra IPs from file"""
@@ -69,18 +71,37 @@ class NDIDiscoveryService:
 
     def discover_sources(self, timeout: int = 8) -> List[Dict]:
         """
-        Discover NDI sources using yuri enumerate.
+        Discover NDI sources using ndi_discover tool.
+        Falls back to yuri2 enumerate if ndi_discover is not available.
         Returns list of sources with name and address.
         """
         try:
             logger.info("Starting NDI source discovery...")
-            result = subprocess.run(
-                [self.yuri_bin, '-I', 'ndi_input'],
-                capture_output=True,
-                text=True,
-                timeout=timeout,
-                env=self._get_env()
-            )
+
+            # Try ndi_discover first (preferred method)
+            if os.path.exists(self.ndi_discover_bin):
+                logger.debug(f"Using ndi_discover: {self.ndi_discover_bin}")
+                result = subprocess.run(
+                    [self.ndi_discover_bin, '-t', str(timeout)],
+                    capture_output=True,
+                    text=True,
+                    timeout=timeout + 5,  # Extra buffer for tool startup
+                    env=self._get_env()
+                )
+            else:
+                # Fallback to yuri2 enumerate
+                logger.debug(f"ndi_discover not found, falling back to yuri2")
+                result = subprocess.run(
+                    [self.yuri_bin, '-I', 'ndi_input'],
+                    capture_output=True,
+                    text=True,
+                    timeout=timeout,
+                    env=self._get_env()
+                )
+
+            logger.debug(f"Discovery stdout: {result.stdout}")
+            if result.stderr:
+                logger.debug(f"Discovery stderr: {result.stderr}")
 
             sources = self._parse_enumerate_output(result.stdout)
             logger.info(f"Discovered {len(sources)} NDI sources")
