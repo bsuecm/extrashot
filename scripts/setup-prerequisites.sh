@@ -179,6 +179,12 @@ if [ "$YURI_INSTALLED" = false ] || [ "$1" = "--force-yuri" ]; then
     log_info "Cloning libyuri..."
     git clone --depth 1 https://github.com/bsuecm/libyuri.git "$YURI_TMP/libyuri"
 
+    # Remove modules incompatible with ffmpeg 7 (not needed for NDI functionality)
+    log_info "Removing incompatible modules..."
+    rm -rf "$YURI_TMP/libyuri/src/modules/rawavfile"
+    rm -rf "$YURI_TMP/libyuri/src/modules/avdemux"
+    rm -rf "$YURI_TMP/libyuri/src/modules/ultragrid"
+
     log_info "Configuring build..."
     mkdir -p "$YURI_TMP/libyuri/build"
     cd "$YURI_TMP/libyuri/build"
