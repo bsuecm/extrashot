@@ -176,8 +176,8 @@ fi
 if [ "$YURI_INSTALLED" = false ] || [ "$1" = "--force-yuri" ]; then
     YURI_TMP=$(mktemp -d /tmp/libyuri.XXXXXXX)
 
-    log_info "Cloning libyuri..."
-    git clone --depth 1 https://github.com/bsuecm/libyuri.git "$YURI_TMP/libyuri"
+    log_info "Cloning libyuri (ndi6-trixie-support branch)..."
+    git clone --depth 1 --branch ndi6-trixie-support https://github.com/bsuecm/libyuri.git "$YURI_TMP/libyuri"
 
     # Remove modules incompatible with ffmpeg 7 (not needed for NDI functionality)
     log_info "Removing incompatible modules..."
