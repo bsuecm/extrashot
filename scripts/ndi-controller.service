@@ -13,6 +13,14 @@ WorkingDirectory=/opt/ndi-controller/backend
 Environment=PATH=/usr/local/bin:/usr/bin:/bin
 Environment=PYTHONUNBUFFERED=1
 
+# Display access for SDL2 window output (yuri2 viewer)
+# These are set by the installer based on the desktop user
+Environment=DISPLAY=:0
+Environment=WAYLAND_DISPLAY=wayland-0
+Environment=SDL_VIDEODRIVER=x11
+Environment=XDG_RUNTIME_DIR=/run/user/1000
+# XAUTHORITY is set dynamically by the installer
+
 # Library paths for yuri and NDI
 Environment=LD_LIBRARY_PATH=/usr/local/lib
 Environment=NDI_PATH=/usr/local/lib/libndi.so.6

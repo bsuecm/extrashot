@@ -151,6 +151,58 @@ log_info "Setting up preview directory..."
 mkdir -p /dev/shm/extrashot_preview
 chown "$SERVICE_USER:$SERVICE_USER" /dev/shm/extrashot_preview
 
+# Create tmpfiles.d config so directory is recreated on boot
+log_info "Creating tmpfiles.d configuration..."
+cat > /etc/tmpfiles.d/extrashot.conf << EOF
+d /dev/shm/extrashot_preview 0755 $SERVICE_USER $SERVICE_USER -
+EOF
+
+# Detect desktop user for display access
+DESKTOP_USER=""
+for user_home in /home/*; do
+    if [ -f "$user_home/.Xauthority" ]; then
+        DESKTOP_USER=$(basename "$user_home")
+        break
+    fi
+done
+
+if [ -n "$DESKTOP_USER" ]; then
+    DESKTOP_UID=$(id -u "$DESKTOP_USER")
+    log_info "Detected desktop user: $DESKTOP_USER (UID: $DESKTOP_UID)"
+
+    # Update service file with correct XAUTHORITY and XDG_RUNTIME_DIR
+    sed -i "s|Environment=XDG_RUNTIME_DIR=.*|Environment=XDG_RUNTIME_DIR=/run/user/$DESKTOP_UID|" "$SCRIPT_DIR/ndi-controller.service"
+
+    # Add XAUTHORITY line to service file if not present
+    if ! grep -q "XAUTHORITY" "$SCRIPT_DIR/ndi-controller.service"; then
+        sed -i "/# XAUTHORITY is set dynamically/a Environment=XAUTHORITY=/home/$DESKTOP_USER/.Xauthority" "$SCRIPT_DIR/ndi-controller.service"
+    else
+        sed -i "s|Environment=XAUTHORITY=.*|Environment=XAUTHORITY=/home/$DESKTOP_USER/.Xauthority|" "$SCRIPT_DIR/ndi-controller.service"
+    fi
+
+    # Create xhost autostart entry to allow ndi user display access
+    log_info "Setting up display access for $SERVICE_USER..."
+    AUTOSTART_DIR="/home/$DESKTOP_USER/.config/autostart"
+    mkdir -p "$AUTOSTART_DIR"
+    cat > "$AUTOSTART_DIR/extrashot-xhost.desktop" << EOF
+[Desktop Entry]
+Type=Application
+Name=Extrashot Display Access
+Exec=/bin/sh -c "xhost +local:"
+Hidden=false
+NoDisplay=true
+X-GNOME-Autostart-enabled=true
+EOF
+    chown -R "$DESKTOP_USER:$DESKTOP_USER" "$AUTOSTART_DIR"
+
+    # Apply xhost now if X is running
+    if [ -n "$DISPLAY" ] || [ -f "/home/$DESKTOP_USER/.Xauthority" ]; then
+        su - "$DESKTOP_USER" -c "DISPLAY=:0 xhost +local:" 2>/dev/null || true
+    fi
+else
+    log_warn "Could not detect desktop user. You may need to run 'xhost +local:' manually."
+fi
+
 # Install systemd service
 log_info "Installing systemd service..."
 cp "$SCRIPT_DIR/ndi-controller.service" /etc/systemd/system/
