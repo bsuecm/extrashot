@@ -78,6 +78,7 @@ apt-get install -y \
     libavformat-dev \
     libavutil-dev \
     libswscale-dev \
+    libjsoncpp-dev \
     python3 \
     python3-venv \
     python3-pip \
@@ -179,12 +180,13 @@ if [ "$YURI_INSTALLED" = false ] || [ "$1" = "--force-yuri" ]; then
     log_info "Cloning libyuri (ndi6-trixie-support branch)..."
     git clone --depth 1 --branch ndi6-trixie-support https://github.com/bsuecm/libyuri.git "$YURI_TMP/libyuri"
 
-    # Remove modules incompatible with ffmpeg 7 (not needed for NDI functionality)
+    # Remove modules incompatible with ffmpeg 7 or with broken cmake detection (not needed for NDI functionality)
     log_info "Removing incompatible modules..."
     rm -rf "$YURI_TMP/libyuri/src/modules/rawavfile"
     rm -rf "$YURI_TMP/libyuri/src/modules/avdemux"
     rm -rf "$YURI_TMP/libyuri/src/modules/avoutput"
     rm -rf "$YURI_TMP/libyuri/src/modules/ultragrid"
+    rm -rf "$YURI_TMP/libyuri/src/modules/webserver"
 
     # Also remove references from CMakeLists.txt
     MODULES_CMAKE="$YURI_TMP/libyuri/src/modules/CMakeLists.txt"
@@ -193,6 +195,7 @@ if [ "$YURI_INSTALLED" = false ] || [ "$1" = "--force-yuri" ]; then
         sed -i '/add_subdirectory.*avdemux/d' "$MODULES_CMAKE"
         sed -i '/add_subdirectory.*avoutput/d' "$MODULES_CMAKE"
         sed -i '/add_subdirectory.*ultragrid/d' "$MODULES_CMAKE"
+        sed -i '/add_subdirectory.*webserver/d' "$MODULES_CMAKE"
     fi
 
     log_info "Configuring build..."
