@@ -21,9 +21,11 @@ function OutputManager({ status, onStatusChange, onError }) {
       // Filter to only show actual cameras (exclude codec/isp devices)
       // Also filter out secondary video nodes (odd numbers like video1, video3)
       const cameraDevices = (data.devices || []).filter(d => {
-        const isCamera = d.name.includes('Webcam') ||
-          d.name.includes('Camera') ||
-          d.name.includes('USB') ||
+        const nameLower = d.name.toLowerCase();
+        const isCamera = nameLower.includes('webcam') ||
+          nameLower.includes('camera') ||
+          nameLower.includes('cam') ||
+          nameLower.includes('usb') ||
           d.type === 'libcamera';
         // For V4L2, only show primary capture devices (even numbered: video0, video2, etc.)
         const videoNum = d.path.match(/video(\d+)$/);
