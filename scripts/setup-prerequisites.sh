@@ -83,7 +83,8 @@ apt-get install -y \
     python3-venv \
     python3-pip \
     curl \
-    x11-xserver-utils
+    x11-xserver-utils \
+    wayland-protocols
 
 # Install Node.js if not present (for frontend build)
 if ! command -v node &>/dev/null; then
