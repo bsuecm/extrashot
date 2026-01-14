@@ -51,19 +51,33 @@ def cleanup_old_frames():
 def generate_mjpeg():
     """Generator that yields MJPEG frames from the preview directory"""
     cleanup_counter = 0
-    while True:
-        frame = get_latest_frame()
-        if frame:
-            yield (b'--frame\r\n'
-                   b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
+    try:
+        while True:
+            frame = get_latest_frame()
+            if frame:
+                try:
+                    yield (b'--frame\r\n'
+                           b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
+                except GeneratorExit:
+                    # Client disconnected - exit gracefully
+                    return
+                except (BrokenPipeError, ConnectionResetError, OSError):
+                    # Connection lost - exit gracefully
+                    return
 
-        # Cleanup old frames periodically (every 30 frames)
-        cleanup_counter += 1
-        if cleanup_counter >= 30:
-            cleanup_old_frames()
-            cleanup_counter = 0
+            # Cleanup old frames periodically (every 30 frames)
+            cleanup_counter += 1
+            if cleanup_counter >= 30:
+                cleanup_old_frames()
+                cleanup_counter = 0
 
-        time.sleep(FRAME_INTERVAL)
+            time.sleep(FRAME_INTERVAL)
+    except GeneratorExit:
+        # Client disconnected
+        pass
+    except Exception:
+        # Any other error - exit gracefully rather than crash
+        pass
 
 
 @bp.route('/stream')
