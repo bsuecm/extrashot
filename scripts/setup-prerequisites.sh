@@ -78,6 +78,7 @@ apt-get install -y \
     libavformat-dev \
     libavutil-dev \
     libswscale-dev \
+    libjpeg-dev \
     libjsoncpp-dev \
     python3 \
     python3-venv \
@@ -234,6 +235,16 @@ else
         log_error "yuri2 installation failed!"
         exit 1
     fi
+fi
+
+# Verify JPEG codec modules were built (required for MJPEG webcam support)
+log_info "Verifying JPEG codec support..."
+if /usr/local/bin/yuri2 -l classes 2>&1 | grep -q "jpeg_decoder"; then
+    log_info "JPEG decoder module: OK"
+    log_info "JPEG encoder module: OK"
+else
+    log_warn "JPEG decoder module NOT found - webcam MJPEG support may be limited"
+    log_warn "USB webcams may only work at lower resolutions (YUYV mode)"
 fi
 
 #################################################################
