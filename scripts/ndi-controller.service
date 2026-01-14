@@ -34,8 +34,11 @@ Environment=FRONTEND_DIR=/opt/ndi-controller/frontend/dist
 Environment=CONFIG_DIR=/opt/ndi-controller/configs/generated
 Environment=NDI_EXTRA_IPS_FILE=/opt/ndi-controller/configs/extra_ips.txt
 
-# Use gunicorn from virtual environment (single worker to maintain state)
-ExecStart=/opt/ndi-controller/venv/bin/gunicorn -w 1 -b 0.0.0.0:5000 --timeout 120 --access-logfile - --error-logfile - app:app
+# Use gunicorn with gevent workers for proper streaming support
+# -k gevent: use gevent async workers (handles streaming without blocking)
+# -w 1: single worker to maintain yuri process state
+# --timeout 300: 5 minute timeout for long operations
+ExecStart=/opt/ndi-controller/venv/bin/gunicorn -k gevent -w 1 -b 0.0.0.0:5000 --timeout 300 --access-logfile - --error-logfile - app:app
 
 # Graceful shutdown
 ExecStop=/bin/kill -TERM $MAINPID
