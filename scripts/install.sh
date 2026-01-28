@@ -207,7 +207,7 @@ if [ -n "$DESKTOP_USER" ]; then
     sed -i "s|Environment=XDG_RUNTIME_DIR=.*|Environment=XDG_RUNTIME_DIR=/run/user/$DESKTOP_UID|" "$SCRIPT_DIR/ndi-controller.service"
 
     # Add XAUTHORITY line to service file if not present
-    if ! grep -q "XAUTHORITY" "$SCRIPT_DIR/ndi-controller.service"; then
+    if ! grep -q "^Environment=XAUTHORITY" "$SCRIPT_DIR/ndi-controller.service"; then
         sed -i "/# XAUTHORITY is set dynamically/a Environment=XAUTHORITY=/home/$DESKTOP_USER/.Xauthority" "$SCRIPT_DIR/ndi-controller.service"
     else
         sed -i "s|Environment=XAUTHORITY=.*|Environment=XAUTHORITY=/home/$DESKTOP_USER/.Xauthority|" "$SCRIPT_DIR/ndi-controller.service"
@@ -221,16 +221,24 @@ if [ -n "$DESKTOP_USER" ]; then
 [Desktop Entry]
 Type=Application
 Name=Extrashot Display Access
-Exec=/bin/sh -c "xhost +local:"
+Exec=/bin/sh -c "DISPLAY=:0 XAUTHORITY=/home/$DESKTOP_USER/.Xauthority xhost +local:"
 Hidden=false
 NoDisplay=true
 X-GNOME-Autostart-enabled=true
 EOF
     chown -R "$DESKTOP_USER:$DESKTOP_USER" "$AUTOSTART_DIR"
 
+    # Also add to labwc autostart for Wayland compositors (more reliable)
+    LABWC_DIR="/home/$DESKTOP_USER/.config/labwc"
+    mkdir -p "$LABWC_DIR"
+    if [ ! -f "$LABWC_DIR/autostart" ] || ! grep -q "xhost" "$LABWC_DIR/autostart"; then
+        echo "DISPLAY=:0 XAUTHORITY=/home/$DESKTOP_USER/.Xauthority xhost +local: &" >> "$LABWC_DIR/autostart"
+    fi
+    chown -R "$DESKTOP_USER:$DESKTOP_USER" "$LABWC_DIR"
+
     # Apply xhost now if X is running
     if [ -n "$DISPLAY" ] || [ -f "/home/$DESKTOP_USER/.Xauthority" ]; then
-        su - "$DESKTOP_USER" -c "DISPLAY=:0 xhost +local:" 2>/dev/null || true
+        su - "$DESKTOP_USER" -c "DISPLAY=:0 XAUTHORITY=/home/$DESKTOP_USER/.Xauthority xhost +local:" 2>/dev/null || true
     fi
 else
     log_warn "Could not detect desktop user. You may need to run 'xhost +local:' manually."
